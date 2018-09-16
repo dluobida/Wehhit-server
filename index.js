@@ -65,8 +65,117 @@ app.get('/getExamListById/:id', function (req, res) {
 
  }); 
 
+ app.get('/getExamListByCondition', function (req, res) {
+    // 1.请求考试信息平台
+    
+    var examType = (req.query.examType == undefined) ? "" : req.query.examType;
+    var academic = (req.query.academic == undefined) ? "" : req.query.academic;
+    var courseName = (req.query.courseName == undefined) ? "" : req.query.courseName;
+    var startExamDate = (req.query.startExamDate == undefined) ? "" : req.query.startExamDate;
+    var endExamDate = (req.query.endExamDate == undefined) ? "" : req.query.endExamDate;
+    var startTime = (req.query.startTime == undefined) ? "" : req.query.startTime;
+    var endTime = (req.query.endTime == undefined) ? "" : req.query.endTime;
+    var examUnit = (req.query.examUnit == undefined) ? "" : req.query.examUnit;
+    var instituteid = (req.query.instituteid == undefined) ? "" : req.query.instituteid;
+    var arrangeInstitute = (req.query.arrangeInstitute == undefined) ? "" : req.query.arrangeInstitute;
+    var pagenow = (req.query.pagenow == undefined) ? 1 : req.query.pagenow;
+
+    getExgetExamListByCondition(examType,
+                               academic,
+                               courseName,
+                               startExamDate,
+                               endExamDate,
+                               startTime,
+                               endTime,
+                               examUnit,
+                               instituteid,
+                               arrangeInstitute,
+                               pagenow,
+                               res);
+ 
+ }); 
+
+ function getExgetExamListByCondition(examType,
+                                     academic,
+                                     courseName,
+                                     startExamDate,
+                                     endExamDate,
+                                     startTime,
+                                     endTime,
+                                     examUnit,
+                                     instituteid,
+                                     arrangeInstitute,
+                                     pagenow,
+                                     response){
+    var url = "http://exam.hhit.edu.cn/fgquery.do?status=advanceQuery&examType=" + 
+    examType +"&academic=" + academic + "&courseName=" + courseName + 
+    "&startExamDate=" + startExamDate + "&endExamDate=" + endExamDate +
+    "&startTime=" + startTime + "&endTime=" + endTime + "&examUnit=" +examUnit +
+    "&instituteid=" + instituteid + "&arrangeInstitute=" + arrangeInstitute + "&pagenow=" + pagenow;
+
+    // console.log("condition:"+ url);
+    exeFgqueryForList(url,response);
+  
+ }
+
  function getExamListById(studentId,response){
     var url = "http://exam.hhit.edu.cn/fgquery.do?status=lowquery&tsid=" + studentId;
+    exeFgqueryForList(url,response);
+ }
+
+
+ function getExamDetailById(examId,response){
+    var url = "http://exam.hhit.edu.cn/fgquery.do?status=examdetail&examid=" + examId;
+    http.get(encodeURI(url), function (req, res) {
+        var html = '';
+        req.on('data', function (data) {
+            html += data;
+        });
+        req.on('end', function () {
+           var examList = [];
+           var examDetail = {};
+
+            var $ = cheerio.load(html);
+            var items = $('#content > div > table > tbody > tr:nth-child(2) > td > table > tbody')
+                          .children('tr');
+            console.log("length="+items.length);
+            //循环items
+            items.each(function(index,elem){
+                var exam = {};
+                var detailItems = $(this).children('td');
+                // console.log('examid:'+examid +"===="+examItems.length);
+                //循环examItems
+                detailItems.each(function(index,element){
+                    if(index % 2 != 0 ){
+                        examList.push($(this).text().trim());
+                    }
+                    
+                });
+            });
+
+            examDetail.term = examList[0];
+            examDetail.date = examList[1].split(" ")[0];
+            examDetail.address = examList[2];
+            examDetail.time = examList[3];
+            examDetail.subject = examList[4];
+            examDetail.class = examList[5];
+            examDetail.teacher = examList[6];
+            examDetail.category = examList[7];
+            examDetail.number = examList[8];
+            examDetail.form = examList[9];
+
+
+            // console.log("最终的考试列表结果:"+ JSON.stringify(examDetail));
+
+            response.writeHead(200,{'Content-Type':'text/html;charset=utf-8'});
+            response.end(JSON.stringify(examDetail));
+
+        });
+    });
+ }
+
+
+ function exeFgqueryForList(url,response){
     http.get(encodeURI(url), function (req, res) {
         var html = '';
         req.on('data', function (data) {
@@ -121,64 +230,16 @@ app.get('/getExamListById/:id', function (req, res) {
 
             });
 
-            console.log("最终的考试列表结果:"+ JSON.stringify(examList));
+            // console.log("最终的考试列表结果:"+ JSON.stringify(examList));
             response.writeHead(200,{'Content-Type':'text/html;charset=utf-8'});
             response.end(JSON.stringify(examList));
             
 
         });
     });
- }
 
 
- function getExamDetailById(examId,response){
-    var url = "http://exam.hhit.edu.cn/fgquery.do?status=examdetail&examid=" + examId;
-    http.get(encodeURI(url), function (req, res) {
-        var html = '';
-        req.on('data', function (data) {
-            html += data;
-        });
-        req.on('end', function () {
-           var examList = [];
-           var examDetail = {};
 
-            var $ = cheerio.load(html);
-            var items = $('#content > div > table > tbody > tr:nth-child(2) > td > table > tbody')
-                          .children('tr');
-            console.log("length="+items.length);
-            //循环items
-            items.each(function(index,elem){
-                var exam = {};
-                var detailItems = $(this).children('td');
-                // console.log('examid:'+examid +"===="+examItems.length);
-                //循环examItems
-                detailItems.each(function(index,element){
-                    if(index % 2 != 0 ){
-                        examList.push($(this).text().trim());
-                    }
-                    
-                });
-            });
-
-            examDetail.term = examList[0];
-            examDetail.date = examList[1].split(" ")[0];
-            examDetail.address = examList[2];
-            examDetail.time = examList[3];
-            examDetail.subject = examList[4];
-            examDetail.class = examList[5];
-            examDetail.teacher = examList[6];
-            examDetail.category = examList[7];
-            examDetail.number = examList[8];
-            examDetail.form = examList[9];
-
-
-            console.log("最终的考试列表结果:"+ JSON.stringify(examDetail));
-
-            response.writeHead(200,{'Content-Type':'text/html;charset=utf-8'});
-            response.end(JSON.stringify(examDetail));
-
-        });
-    });
  }
  
 
