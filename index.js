@@ -1,6 +1,8 @@
 var express = require('express');
 var app = express();
 
+app.use(express.static('public'));
+
 //使用nodejs自带的http、https模块
 var https = require('https');
 var http = require('http');
