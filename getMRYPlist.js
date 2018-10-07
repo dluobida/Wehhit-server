@@ -32,7 +32,7 @@ function getAll(begin, end) {
     }  
 }  
 
-getAll('2014-01-01', '2018-09-05'); 
+getAll('2014-01-01', '2018-10-07'); 
 
 // for(var position in chooseDate){
 //     getArticle(chooseDate[position]);
