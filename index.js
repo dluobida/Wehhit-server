@@ -10,6 +10,7 @@ var fs = require('fs');
 
 var ExamArrange = require('./server/examArrange.js');
 var ReadService = require('./server/read.js');
+var CETService = require('./server/cet.js');
 
 //根据项目的路径导入生成的证书文件
  var privateKey  = fs.readFileSync('private.key', 'utf8');
@@ -25,14 +26,14 @@ var PORT = 80;
 var SSLPORT = 443;
 
 //创建http服务器
-// httpServer.listen(PORT, function() {
-//     console.log('HTTP Server is running on: http://localhost:%s', PORT);
-// });
+httpServer.listen(PORT, function() {
+    console.log('HTTP Server is running on: http://localhost:%s', PORT);
+});
 
 //创建https服务器
-httpsServer.listen(SSLPORT, function() {
-     console.log('HTTPS Server is running on: https://localhost:%s', SSLPORT);
- });
+// httpsServer.listen(SSLPORT, function() {
+//      console.log('HTTPS Server is running on: https://localhost:%s', SSLPORT);
+//  });
   
 //可以根据请求判断是http还是https
 app.get('/', function (req, res) {
@@ -102,6 +103,14 @@ app.get('/getExamListById/:id', function (req, res) {
     // 1.请求考试信息平台
     var date = req.params.date;
     ReadService.getReadDetailByDate(date,res);
+
+ }); 
+
+ //根据学号获取验证码
+ app.get('/getCetVerifyByStuId/:stuid', function (req, res) {
+    // 1.请求考试信息平台
+    var stuid = req.params.stuid;
+    CETService.getCetVerifyByStuId(stuid,res);
 
  }); 
 
