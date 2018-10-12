@@ -10,7 +10,8 @@ var fs = require('fs');
 
 var ExamArrange = require('./server/examArrange.js');
 var ReadService = require('./server/read.js');
-var CETService = require('./server/cet.js');
+var ComputerService = require('./server/computer.js');
+var PthService = require('./server/putonghua.js');
 
 //根据项目的路径导入生成的证书文件
  var privateKey  = fs.readFileSync('private.key', 'utf8');
@@ -106,11 +107,27 @@ app.get('/getExamListById/:id', function (req, res) {
 
  }); 
 
- //根据学号获取验证码
- app.get('/getCetVerifyByStuId/:stuid', function (req, res) {
+ //根据学号获取CET准考证
+ app.get('/getCetExamnumByStuId/:stuid', function (req, res) {
     // 1.请求考试信息平台
     var stuid = req.params.stuid;
     CETService.getCetVerifyByStuId(stuid,res);
+
+ }); 
+
+ //根据学号获取计算机成绩
+ app.get('/getComputerScoresByStuId/:stuid', function (req, res) {
+    // 1.请求考试信息平台
+    var stuid = req.params.stuid;
+    ComputerService.getComputerScoresByStuId(stuid,res);
+
+ }); 
+
+ //根据学号获取普通话成绩
+ app.get('/getPthScoresByStuId/:stuid', function (req, res) {
+    // 1.请求考试信息平台
+    var stuid = req.params.stuid;
+    PthService.getPthScoresByStuId(stuid,res);
 
  }); 
 

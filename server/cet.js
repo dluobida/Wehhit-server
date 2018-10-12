@@ -16,9 +16,9 @@ connection.query(sql,function (err, result) {
  
        console.log('--------------------------SELECT----------------------------');
        console.log(result);
-    //    response.writeHead(200, { 'Content-Type': 'application/json;charset=utf-8' });
-    //    response.end(JSON.stringify(result[0]));
-       getverifyByExamnum(result[0].examnum,response);
+       response.writeHead(200, { 'Content-Type': 'application/json;charset=utf-8' });
+       response.end(JSON.stringify(result[0]));
+    //    getverifyByExamnum(result[0].examnum,response);
        console.log('------------------------------------------------------------\n\n'); 
 
     
