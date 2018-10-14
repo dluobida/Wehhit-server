@@ -11,6 +11,8 @@ CETService.getCetVerifyByStuId = function(stuid,response){
 connection.query(sql,function (err, result) {
         if(err){
           console.log('[SELECT ERROR] - ',err.message);
+          response.writeHead(200, { 'Content-Type': 'application/json;charset=utf-8' });
+          response.end("请求失败:"+err.message);
           return;
         }
  
