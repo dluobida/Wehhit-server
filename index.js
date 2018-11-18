@@ -1,5 +1,9 @@
 var express = require('express');
 var app = express();
+var bodyParser = require('body-parser');
+
+// 创建 application/x-www-form-urlencoded 编码解析
+var urlencodedParser = bodyParser.urlencoded({ extended: false });
 
 app.use(express.static('public'));
 
@@ -13,6 +17,7 @@ var ReadService = require('./server/read.js');
 var ComputerService = require('./server/computer.js');
 var PthService = require('./server/putonghua.js');
 var CETService = require('./server/cet.js');
+var ZFService = require('./server/zf.js');
 
 //根据项目的路径导入生成的证书文件
  var privateKey  = fs.readFileSync('private.key', 'utf8');
@@ -24,18 +29,18 @@ var httpServer = http.createServer(app);
 var httpsServer = https.createServer(credentials, app);
 
 //可以分别设置http、https的访问端口号
-var PORT = 80;
+var PORT = 8011;
 var SSLPORT = 443;
 
 //创建http服务器
-// httpServer.listen(PORT, function() {
-//     console.log('HTTP Server is running on: http://localhost:%s', PORT);
-// });
+httpServer.listen(PORT, function() {
+    console.log('HTTP Server is running on: http://localhost:%s', PORT);
+});
 
 //创建https服务器
-httpsServer.listen(SSLPORT, function() {
-     console.log('HTTPS Server is running on: https://localhost:%s', SSLPORT);
- });
+// httpsServer.listen(SSLPORT, function() {
+//      console.log('HTTPS Server is running on: https://localhost:%s', SSLPORT);
+//  });
   
 //可以根据请求判断是http还是https
 app.get('/', function (req, res) {
@@ -131,6 +136,29 @@ app.get('/getExamListById/:id', function (req, res) {
     PthService.getPthScoresByStuId(stuid,res);
 
  }); 
+
+ app.get('/getZFState', function (req, res) {
+      ZFService.getZFState(res);
+
+ }); 
+
+ app.post('/zfLogin',urlencodedParser, function (req, res) {
+    var  data = {
+        "stateValue":req.body.stateValue,
+        "txtUserName":req.body.txtUserName,
+        "password":req.body.password,
+        "verifyCode":req.body.verifyCode,
+        "RadioButtonList1":"学生",
+        "randomUrl":req.body.randomUrl
+
+    }
+   console.log("data请求："+ JSON.stringify(data));
+
+   ZFService.login(data,res);
+
+}); 
+
+
 
 
  

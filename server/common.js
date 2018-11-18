@@ -17,3 +17,7 @@ CommonUtils.getConnection = function(){
 
 }
 
+CommonUtils.getZFBaseUrl = function(){
+    return "http://zfxk.hhit.edu.cn";
+}
+

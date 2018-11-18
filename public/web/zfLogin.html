@@ -1,0 +1,74 @@
+<html>
+
+<body>
+    <div>
+    <div style="text-align:center;margin-top: 10%;">
+        <input type="hidden" id="urlAndState" name="newUrl" value="states" />
+        <input id="verifyCode" type="text" name="stuNum" placeholder="请输入学号" />
+        <input type="password" name="stuNum" placeholder="请输入密码" />
+    </div>
+    <div id="verifyImg" style="text-align:center;">
+    
+    </div>
+    <div style="text-align:center;">
+        <button type="button" style="width: 100px;margin-top: 10px;">登录</button>
+    </div>
+    </div>
+  
+</body>
+<script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js">
+</script>
+<script>
+var statesAndUrl = {};
+
+ $(document).ready(function(){
+    $.ajax({
+        type: "get",
+        url: '/getZFState',
+        data: {
+
+        },
+        success: function (data) {
+            console.log("result:"+data);
+            statesAndUrl = JSON.parse(data);
+            $("#verifyImg").html('<img  src="http://zfxk.hhit.edu.cn'+statesAndUrl.url+'/CheckCode.aspx"/>');
+
+
+        },
+        error: function(err){
+         
+        }
+    });
+
+  $('button').click(function(){
+    //   alert("点击登录");
+    var verifyCode = $("#verifyCode").val().trim();
+    $.ajax({
+        type: "post",
+        url: '/zfLogin',
+        data: {
+            "stateValue":statesAndUrl.stateValue,
+            "txtUserName":"2016124174",
+            "password":"yll660728",
+            "verifyCode":verifyCode,
+            "RadioButtonList1":"学生",
+            "randomUrl":statesAndUrl.url
+
+
+        },
+        success: function (data) {
+            console.log("result:"+data);
+        },
+        error: function(err){
+
+        }
+    });
+
+
+  });
+
+  
+});
+</script>
+
+</html>
