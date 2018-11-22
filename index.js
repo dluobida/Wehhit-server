@@ -158,6 +158,16 @@ app.get('/getExamListById/:id', function (req, res) {
 
 }); 
 
+//返回验证码
+app.get('/getCheckCode/:randomUrl', function (req, res) {
+    // 1.请求考试信息平台
+    var randomUrl = req.params.randomUrl;
+    var realUrl = 'http://zfxk.hhit.edu.cn/' + randomUrl+'/CheckCode.aspx'
+    console.log("realUrl:"+realUrl);
+    res.redirect(encodeURI(realUrl));
+
+ }); 
+
 
 
 

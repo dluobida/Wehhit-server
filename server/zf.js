@@ -90,7 +90,7 @@ function loginStep2(newUrl) {
     });
 
     req.on('error',function(err){
-        defer.reject(error);
+        defer.reject(err);
     });
     req.end();
 
