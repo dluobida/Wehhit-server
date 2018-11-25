@@ -18,6 +18,7 @@ var ComputerService = require('./server/computer.js');
 var PthService = require('./server/putonghua.js');
 var CETService = require('./server/cet.js');
 var ZFService = require('./server/zf.js');
+var ZFServiceNew = require('./server/zfByCookie.js');
 
 //根据项目的路径导入生成的证书文件
  var privateKey  = fs.readFileSync('private.key', 'utf8');
@@ -142,6 +143,11 @@ app.get('/getExamListById/:id', function (req, res) {
 
  }); 
 
+ app.get('/getLogin', function (req, res) {
+    ZFServiceNew.getLogin(res);
+
+}); 
+
  app.post('/zfLogin',urlencodedParser, function (req, res) {
     var  data = {
         "stateValue":req.body.stateValue,
@@ -154,7 +160,8 @@ app.get('/getExamListById/:id', function (req, res) {
     }
    console.log("data请求："+ JSON.stringify(data));
 
-   ZFService.login(data,res);
+//    ZFService.login(data,res);
+   ZFServiceNew.login(data,res);
 
 }); 
 
