@@ -160,8 +160,8 @@ app.get('/getExamListById/:id', function (req, res) {
     }
    console.log("data请求："+ JSON.stringify(data));
 
-//    ZFService.login(data,res);
-   ZFServiceNew.login(data,res);
+   ZFService.login(data,res);
+//    ZFServiceNew.login(data,res);
 
 }); 
 

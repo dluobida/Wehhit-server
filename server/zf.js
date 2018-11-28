@@ -28,9 +28,17 @@ ZF.getZFState = function(response) {
 
 
 ZF.login = function(data,response){
-    zfLogin(data);
-    response.writeHead(200, { 'Content-Type': 'text/html;charset=utf-8' });
-    response.end(JSON.stringify("ok"));
+    zfLogin(data)
+    .then(function(result){
+        response.writeHead(200, { 'Content-Type': 'text/html;charset=utf-8' });
+        response.end(JSON.stringify(result));
+    })
+    .then(null, function(error){
+        console.log("链式流程产生的错误:"+error);
+        response.writeHead(200, { 'Content-Type': 'text/html;charset=utf-8' });
+        response.end("请求失败:"+err);
+    });
+
 
 
 }
@@ -101,6 +109,7 @@ function loginStep2(newUrl) {
 }
 
 function zfLogin(reqData) {
+    var defer=Q.defer();
     var postData = querystring.stringify({
         "__VIEWSTATE":reqData.stateValue,
         "txtUserName":reqData.txtUserName,
@@ -136,17 +145,36 @@ function zfLogin(reqData) {
             html += data;
         });
         res.on('end', function () {
-            var $ = cheerio.load(html);
             console.log("返回结果:" + html);
+            var obj = {};
+            if(res.statusCode == 302){
+                var $ = cheerio.load(html);
+                var movedToUrl = $('h2 a').attr("href");
+                console.log("movedToUrl:"+movedToUrl);
+                obj.status = 'success';
+                obj.movedToUrl = movedToUrl;
+                defer.resolve(obj);
+            }else if(res.statusCode == 200){
+                obj.status = 'fail';
+                obj.reason = html.indexOf('��֤�벻��ȷ����') > 0 ? "验证码不正确":"密码错误，如忘记密码，请与教务处联系!";
+                console.log("reason:"+ obj.reason);
+                defer.resolve(obj);
+            }else{
+                obj.status = 'maintain'
+                defer.resolve(obj);
+            }
+
+            
             
         });
     });
     req.on('error', function (err) {
         console.error(err);
+        defer.reject(err);
     });
     req.write(postData);
     req.end();
 
-
+    return defer.promise;
 
 }
