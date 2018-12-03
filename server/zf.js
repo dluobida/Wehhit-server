@@ -2,6 +2,7 @@ var http = require('http');
 var cheerio = require('cheerio');
 var Q = require('q');
 var querystring = require('querystring');
+var iconv = require("iconv-lite");
 
 var CommonUtils = require('./common.js');
 var ZF = {};
@@ -29,6 +30,15 @@ ZF.getZFState = function(response) {
 
 ZF.login = function(data,response){
     zfLogin(data)
+    .then(function(result){
+        if(result.status == 'success'){
+           //跳转界面，拿到5个子菜单跳转地址
+           return goToMain(result.movedToUrl);
+        }else{
+            response.writeHead(200, { 'Content-Type': 'text/html;charset=utf-8' });
+            response.end(JSON.stringify(result)); 
+        }
+    })
     .then(function(result){
         response.writeHead(200, { 'Content-Type': 'text/html;charset=utf-8' });
         response.end(JSON.stringify(result));
@@ -177,4 +187,52 @@ function zfLogin(reqData) {
 
     return defer.promise;
 
+}
+
+function goToMain(mainUrl) {
+    var defer = Q.defer();
+    var url = CommonUtils.getZFBaseUrl() + mainUrl;
+    console.log("mainUrl:"+url);
+    var req = http.get(encodeURI(url), function (req, res) {
+        // var html = '';
+        var arrBuf = [];
+        var bufLength = 0;
+        req.on('data', function (data) {
+            // html += data;
+            arrBuf.push(data);
+            bufLength += data.length;
+        });
+        req.on('end', function () {
+
+            // console.log("登录界面:"+ html);
+            var datas = [];
+            //获取值
+            var chunkAll = Buffer.concat(arrBuf, bufLength);
+            var html = iconv.decode(chunkAll,'gb2312'); // 汉字不乱码
+            var $ = cheerio.load(html);
+            var items = $('#headDiv > ul > li:nth-child(4) > ul').find('a');
+            //循环items
+            items.each(function (index, elem) {
+                var item = {};
+                item.name = $(this).text();
+                item.url = $(this).attr("href");
+                console.log("menu:"+JSON.stringify(item));
+                datas.push(item);
+                
+                
+            });
+
+            defer.resolve(datas);
+
+
+            
+        });
+    });
+
+    req.on('error', function (err) {
+        defer.reject(err);
+    });
+    req.end();
+
+    return defer.promise;
 }
