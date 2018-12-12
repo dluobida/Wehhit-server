@@ -4,6 +4,8 @@ var Q = require('q');
 var querystring = require('querystring');
 var iconv = require("iconv-lite");
 
+var encoding = require('encoding');
+
 var CommonUtils = require('./common.js');
 var ZF = {};
 module.exports = ZF;
@@ -38,6 +40,22 @@ ZF.login = function(data,response){
             response.writeHead(200, { 'Content-Type': 'text/html;charset=utf-8' });
             response.end(JSON.stringify(result)); 
         }
+    })
+    // .then(function(result){
+    //     return getContent("/"+result.randomUrl);
+
+    // })
+    .then(function(result){
+        var randomUrl = result.randomUrl;
+        var url = result.datas[1].url;
+        var totalUrl = result.url;
+
+        // var contentUrl = "/" + randomUrl + "/" + 'xscj_gc.aspx?xh=2016124174&xm=%D3%DA%C2%BD%C2%BD&gnmkdm=N121605';
+        var contentUrl = "/" + randomUrl + "/" + url;
+        return getXSCJState(randomUrl,contentUrl,totalUrl);
+    })
+    .then(function(result){
+        return getSocres(result);
     })
     .then(function(result){
         response.writeHead(200, { 'Content-Type': 'text/html;charset=utf-8' });
@@ -222,7 +240,12 @@ function goToMain(mainUrl) {
                 
             });
 
-            defer.resolve(datas);
+            var result = {};
+            result.randomUrl = mainUrl.split("/")[1];
+            result.datas = datas;
+            result.url = url;
+            console.log("randomUrl:"+result.randomUrl);
+            defer.resolve(result);
 
 
             
@@ -235,4 +258,170 @@ function goToMain(mainUrl) {
     req.end();
 
     return defer.promise;
+}
+
+function getContent(contentUrl){
+    var defer = Q.defer();
+    var url = CommonUtils.getZFBaseUrl() + contentUrl + "/content.aspx";
+    console.log("contentUrl:"+encodeURI(url));
+    var req = http.get(encodeURI(url), function (req, res) {
+        // var html = '';
+        var arrBuf = [];
+        var bufLength = 0;
+        req.on('data', function (data) {
+            // html += data;
+            arrBuf.push(data);
+            bufLength += data.length;
+        });
+        req.on('end', function () {
+
+            // console.log("登录界面:"+ html);
+            var datas = [];
+            //获取值
+            var chunkAll = Buffer.concat(arrBuf, bufLength);
+            var html = iconv.decode(chunkAll,'gb2312'); // 汉字不乱码
+            var $ = cheerio.load(html);
+            console.log("getXSCJState:"+html);
+        
+            defer.resolve(contentUrl);
+
+
+            
+        });
+    });
+
+    req.on('error', function (err) {
+        defer.reject(err);
+    });
+    req.end();
+
+    return defer.promise;
+
+}
+
+function getXSCJState(randomUrl,contentUrl,totalUrl){
+    var defer = Q.defer();
+    // var contentUrl = "/" + randomUrl + "/" + 'xscj_gc.aspx?xh=2016124174&xm=%D3%DA%C2%BD%C2%BD&gnmkdm=N121605';
+    var url = CommonUtils.getZFBaseUrl() + contentUrl;
+    console.log("contentUrl:"+url);
+    var options = {
+        hostname: 'zfxk.hhit.edu.cn',
+        port: 80,
+        path: contentUrl,
+        method: 'GET',
+        headers: {
+            //'Content-Type':'application/x-www-form-urlencoded',  
+            'Referer': totalUrl,
+            'Host': 'zfxk.hhit.edu.cn'
+        }
+    }
+    var req = http.get(options, function (req, res) {
+        // var html = '';
+        var arrBuf = [];
+        var bufLength = 0;
+        req.on('data', function (data) {
+            // html += data;
+            arrBuf.push(data);
+            bufLength += data.length;
+        });
+        req.on('end', function () {
+
+            // console.log("登录界面:"+ html);
+            var datas = [];
+            //获取值
+            var chunkAll = Buffer.concat(arrBuf, bufLength);
+            var html = iconv.decode(chunkAll,'gb2312'); // 汉字不乱码
+            var $ = cheerio.load(html);
+            console.log("getXSCJState:"+html);
+            // var stateValue = $('#form1 > input[type="hidden"]').val();
+            var xscjState = $('#Form1 > input[type="hidden"]').val();
+            var result = {};
+            result.contentUrl = contentUrl;
+            result.xscjState = xscjState;
+            console.log("xscjState:"+xscjState);
+            defer.resolve(result);
+
+
+            
+        });
+    });
+
+    req.on('error', function (err) {
+        defer.reject(err);
+    });
+    req.end();
+
+    return defer.promise;
+
+}
+
+
+function getSocres(params){
+    var randomUrl = params.randomUrl;
+    var contentUrl = params.contentUrl;
+    var xscjState = params.xscjState;
+
+    var defer=Q.defer();
+    var postData = querystring.stringify({
+        "__VIEWSTATE":xscjState,
+        "ddlXN":'',
+        "ddlXQ":'',
+        "Button2":'%D4%DA%D0%A3%D1%A7%CF%B0%B3%C9%BC%A8%B2%E9%D1%AF'
+
+    });
+    // var contentUrl = "/" + randomUrl + "/" + 'xscj_gc.aspx?xh=2016124174&xm=%D3%DA%C2%BD%C2%BD&gnmkdm=N121605';
+    var options = {
+        hostname: 'zfxk.hhit.edu.cn',
+        port: 80,
+        path: contentUrl,
+        method: 'POST',
+        headers: {
+            //'Content-Type':'application/x-www-form-urlencoded',  
+            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+            'Content-Length': Buffer.byteLength(postData),
+            'Referer': encodeURI('http://zfxk.hhit.edu.cn'+contentUrl),
+            'Host': 'zfxk.hhit.edu.cn'
+        }
+    }
+
+    console.log("path:"+options.path);
+    var req = http.request(options, function (res) {
+        console.log('Status:', res.statusCode);
+        console.log('headers:', JSON.stringify(res.headers));
+        // var html = '';
+        var arrBuf = [];
+        var bufLength = 0;
+        res.on('data', function (data) {
+            // html += data;
+            arrBuf.push(data);
+            bufLength += data.length;
+        });
+        res.on('end', function () {
+            
+            var chunkAll = Buffer.concat(arrBuf, bufLength);
+            var html = iconv.decode(chunkAll,'gb2312'); // 汉字不乱码
+            console.log("返回结果:" + html);
+            var $ = cheerio.load(html);
+            var name = $('#Datagrid1 > tbody > tr:nth-child(2) > td:nth-child(4)').text();
+            // var result = {};
+            // result.randomUrl = randomUrl;
+            // result.xscjState = xscjState;
+            console.log("name:"+name);
+            defer.resolve(name);
+            
+
+            
+            
+        });
+    });
+    req.on('error', function (err) {
+        console.error(err);
+        defer.reject(err);
+    });
+    req.write(postData);
+    req.end();
+
+    return defer.promise;
+
+
 }
