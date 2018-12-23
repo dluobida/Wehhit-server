@@ -86,7 +86,7 @@ function loginStep1() {
             //获取值
             var $ = cheerio.load(html);
             var newUrl = $('a').attr('href');
-            console.log('newUrl:'+newUrl);
+            // console.log('newUrl:'+newUrl);
             defer.resolve(newUrl);
         });
     });
@@ -118,7 +118,7 @@ function loginStep2(newUrl) {
             var stateValue = $('#form1 > input[type="hidden"]').val();
             var obj = new Object();
             var randomUrl = newUrl.replace("/default2.aspx","");
-            console.log("randomUrl:"+randomUrl);
+            // console.log("randomUrl:"+randomUrl);
             obj.url = randomUrl;
             obj.stateValue = stateValue;
             defer.resolve(obj);
@@ -165,27 +165,27 @@ function zfLogin(reqData) {
 
     console.log("path:"+options.path);
     var req = http.request(options, function (res) {
-        console.log('Status:', res.statusCode);
-        console.log('headers:', JSON.stringify(res.headers));
+        // console.log('Status:', res.statusCode);
+        // console.log('headers:', JSON.stringify(res.headers));
         res.setEncoding('utf8');
         var html = '';
         res.on('data', function (data) {
             html += data;
         });
         res.on('end', function () {
-            console.log("返回结果:" + html);
+            // console.log("返回结果:" + html);
             var obj = {};
             if(res.statusCode == 302){
                 var $ = cheerio.load(html);
                 var movedToUrl = $('h2 a').attr("href");
-                console.log("movedToUrl:"+movedToUrl);
+                // console.log("movedToUrl:"+movedToUrl);
                 obj.status = 'success';
                 obj.movedToUrl = movedToUrl;
                 defer.resolve(obj);
             }else if(res.statusCode == 200){
                 obj.status = 'fail';
                 obj.reason = html.indexOf('��֤�벻��ȷ����') > 0 ? "验证码不正确":"密码错误，如忘记密码，请与教务处联系!";
-                console.log("reason:"+ obj.reason);
+                // console.log("reason:"+ obj.reason);
                 defer.resolve(obj);
             }else{
                 obj.status = 'maintain'
@@ -210,7 +210,7 @@ function zfLogin(reqData) {
 function goToMain(mainUrl) {
     var defer = Q.defer();
     var url = CommonUtils.getZFBaseUrl() + mainUrl;
-    console.log("mainUrl:"+url);
+    // console.log("mainUrl:"+url);
     var req = http.get(encodeURI(url), function (req, res) {
         // var html = '';
         var arrBuf = [];
@@ -228,13 +228,13 @@ function goToMain(mainUrl) {
             var chunkAll = Buffer.concat(arrBuf, bufLength);
             var html = iconv.decode(chunkAll,'gb2312'); // 汉字不乱码
             var $ = cheerio.load(html);
-            var items = $('#headDiv > ul > li:nth-child(4) > ul').find('a');
+            var items = $('#headDiv > ul > li:nth-child(5) > ul').find('a');
             //循环items
             items.each(function (index, elem) {
                 var item = {};
                 item.name = $(this).text();
                 item.url = $(this).attr("href");
-                console.log("menu:"+JSON.stringify(item));
+                // console.log("menu:"+JSON.stringify(item));
                 datas.push(item);
                 
                 
@@ -244,7 +244,7 @@ function goToMain(mainUrl) {
             result.randomUrl = mainUrl.split("/")[1];
             result.datas = datas;
             result.url = url;
-            console.log("randomUrl:"+result.randomUrl);
+            // console.log("randomUrl:"+result.randomUrl);
             defer.resolve(result);
 
 
@@ -263,7 +263,7 @@ function goToMain(mainUrl) {
 function getContent(contentUrl){
     var defer = Q.defer();
     var url = CommonUtils.getZFBaseUrl() + contentUrl + "/content.aspx";
-    console.log("contentUrl:"+encodeURI(url));
+    // console.log("contentUrl:"+encodeURI(url));
     var req = http.get(encodeURI(url), function (req, res) {
         // var html = '';
         var arrBuf = [];
@@ -281,7 +281,7 @@ function getContent(contentUrl){
             var chunkAll = Buffer.concat(arrBuf, bufLength);
             var html = iconv.decode(chunkAll,'gb2312'); // 汉字不乱码
             var $ = cheerio.load(html);
-            console.log("getXSCJState:"+html);
+            // console.log("getXSCJState:"+html);
         
             defer.resolve(contentUrl);
 
@@ -303,7 +303,7 @@ function getXSCJState(randomUrl,contentUrl,totalUrl){
     var defer = Q.defer();
     // var contentUrl = "/" + randomUrl + "/" + 'xscj_gc.aspx?xh=2016124174&xm=%D3%DA%C2%BD%C2%BD&gnmkdm=N121605';
     var url = CommonUtils.getZFBaseUrl() + contentUrl;
-    console.log("contentUrl:"+url);
+    // console.log("contentUrl:"+url);
     var options = {
         hostname: 'zfxk.hhit.edu.cn',
         port: 80,
@@ -332,13 +332,13 @@ function getXSCJState(randomUrl,contentUrl,totalUrl){
             var chunkAll = Buffer.concat(arrBuf, bufLength);
             var html = iconv.decode(chunkAll,'gb2312'); // 汉字不乱码
             var $ = cheerio.load(html);
-            console.log("getXSCJState:"+html);
+            // console.log("getXSCJState:"+html);
             // var stateValue = $('#form1 > input[type="hidden"]').val();
             var xscjState = $('#Form1 > input[type="hidden"]').val();
             var result = {};
             result.contentUrl = contentUrl;
             result.xscjState = xscjState;
-            console.log("xscjState:"+xscjState);
+            // console.log("xscjState:"+xscjState);
             defer.resolve(result);
 
 
@@ -384,10 +384,10 @@ function getSocres(params){
         }
     }
 
-    console.log("path:"+options.path);
+    // console.log("path:"+options.path);
     var req = http.request(options, function (res) {
-        console.log('Status:', res.statusCode);
-        console.log('headers:', JSON.stringify(res.headers));
+        // console.log('Status:', res.statusCode);
+        // console.log('headers:', JSON.stringify(res.headers));
         // var html = '';
         var arrBuf = [];
         var bufLength = 0;
@@ -400,14 +400,35 @@ function getSocres(params){
             
             var chunkAll = Buffer.concat(arrBuf, bufLength);
             var html = iconv.decode(chunkAll,'gb2312'); // 汉字不乱码
-            console.log("返回结果:" + html);
+            // console.log("返回结果:" + html);
+            var catag = [];
+            var scores = [];
             var $ = cheerio.load(html);
-            var name = $('#Datagrid1 > tbody > tr:nth-child(2) > td:nth-child(4)').text();
-            // var result = {};
-            // result.randomUrl = randomUrl;
-            // result.xscjState = xscjState;
-            console.log("name:"+name);
-            defer.resolve(name);
+            var items = $('#Datagrid1 > tbody').children("tr");
+            items.each(function (index, element) {
+                if(index == 0){
+                    $(this).children("td").each(function(i,e){
+                        catag.push($(this).text());
+                        
+                    });
+                }else{
+                    var score = [];
+                    $(this).children("td").each(function(i,e){
+                        
+                        score.push($(this).text());
+                        
+                    });
+                    scores.push(score);
+                }
+                });
+            
+            // var name = $('#Datagrid1 > tbody > tr:nth-child(2) > td:nth-child(4)').text();
+            var result = {};
+            result.status = "success";
+            result.catag = catag;
+            result.scores = scores.reverse();
+            // console.log("catag:"+result.scores[0]);
+            defer.resolve(result);
             
 
             
